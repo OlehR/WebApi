@@ -14,6 +14,7 @@ namespace WebAPI.Controllers
         [HttpPost]
         public ActionResult<IEnumerable<string>> Data([FromBody] string data)
         {
+
             return new string[] { "value1", "value2" };
         }
     }
