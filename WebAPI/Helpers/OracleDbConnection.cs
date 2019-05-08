@@ -8,8 +8,15 @@ using Oracle.ManagedDataAccess.Client;
 
 namespace WebAPI.Helpers
 {
-    public class OracleDbConnection
+    public class OracleDbConnection:IDisposable
     {
+        public bool isConnection()
+        {
+            
+                return CreateConnection()!=null;
+            
+        }
+
         public static IConfigurationRoot AppConfiguration { get; set; }
         /// <summary>
         /// Имя провайдера
@@ -26,19 +33,11 @@ namespace WebAPI.Helpers
         /// <summary>
         /// Адрес БД
         /// </summary>
-        public string Host { get; set; }
+        public string DataSource { get; set; }
         /// <summary>
         /// Имя БазыДаных
         /// </summary>
-        public string DataBase { get; set; }
-        /// <summary>
-        /// Порт БазыДаных
-        /// </summary>
-        public int Port { get; set; }
-        /// <summary>
-        /// наименование схемы БД
-        /// </summary>
-        public string Schema { get; set; }
+        
 
         /// <summary>
         /// Подключения к БД
@@ -59,12 +58,12 @@ namespace WebAPI.Helpers
 
             AppConfiguration = builder.Build();
             ProviderName = AppConfiguration["OracleDbConnection:ProviderName"];
-            DataBase = AppConfiguration["OracleDbConnection:Db"];
-            Port = Convert.ToInt32(AppConfiguration["OracleDbConnection:Port"]);
-            Host = AppConfiguration["OracleDbConnection:Host"];
+            
+            
+            
             UserName = AppConfiguration["OracleDbConnection:UserName"];
             Password = AppConfiguration["OracleDbConnection:Password"];
-            Schema = AppConfiguration["OracleDbConnection:Schema"];
+            DataSource = AppConfiguration["OracleDbConnection:DataSource"];
         }
 
         /// <summary>
@@ -73,7 +72,7 @@ namespace WebAPI.Helpers
         /// <returns></returns>
         public string GetConnectionString()
         {
-            return String.Format("Server={0};Port={1};Database={2};User Id={3};Password={4}", Host, Port, DataBase, UserName, Password);
+            return String.Format("Data Source={0};User Id={1};Password={2};", DataSource, UserName, Password);
         }
 
         public OracleConnection CreateConnection()
@@ -85,7 +84,7 @@ namespace WebAPI.Helpers
                 _OracleConnectionList.Add(_OracleConnection);
                 return _OracleConnection;
             }
-            catch
+            catch(Exception Ex )
             {
                 _OracleConnection.Dispose();
                 return null;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using WebAPI.Helpers;
 
 namespace WebAPI.Controllers
 {
@@ -12,9 +13,15 @@ namespace WebAPI.Controllers
     {
         // POST api/data
         [HttpPost]
-        public ActionResult<IEnumerable<string>> Data([FromBody] string data)
+        public ActionResult<string> Data([FromBody] string data)
         {
-            return new string[] { "value1", "value2" };
+            bool res;
+            using (var con = new OracleDbConnection() )
+            {
+                res=con.isConnection();
+            }
+            return res?"1":"0";
+
         }
     }
 }
