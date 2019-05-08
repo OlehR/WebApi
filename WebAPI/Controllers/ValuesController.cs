@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using WebAPI.Helpers;
+using SharedLib;
 
 namespace WebAPI.Controllers
 {
@@ -16,11 +16,11 @@ namespace WebAPI.Controllers
         public ActionResult<string> Data([FromBody] string data)
         {
             bool res;
-            using (var con = new OracleDbConnection() )
+            using (var con = new OracleDbConnection())
             {
-                res=con.isConnection();
+                res = con.isConnection();
             }
-            return res?"1":"0";
+            return res ? "1" : "0";
 
         }
     }

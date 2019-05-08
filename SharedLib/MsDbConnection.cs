@@ -2,21 +2,14 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using System.Data.SqlClient;
 using System.Data.Common;
 using System.Data;
-using Oracle.ManagedDataAccess.Client;
 
-namespace WebAPI.Helpers
+namespace SharedLib
 {
-    public class OracleDbConnection:IDisposable
+    public class MsDbConnection
     {
-        public bool isConnection()
-        {
-            
-                return CreateConnection()!=null;
-            
-        }
-
         public static IConfigurationRoot AppConfiguration { get; set; }
         /// <summary>
         /// Имя провайдера
@@ -33,16 +26,24 @@ namespace WebAPI.Helpers
         /// <summary>
         /// Адрес БД
         /// </summary>
-        public string DataSource { get; set; }
+        public string Host { get; set; }
         /// <summary>
         /// Имя БазыДаных
         /// </summary>
-        
+        public string DataBase { get; set; }
+        /// <summary>
+        /// Порт БазыДаных
+        /// </summary>
+        public int Port { get; set; }
+        /// <summary>
+        /// наименование схемы БД
+        /// </summary>
+        public string Schema { get; set; }
 
         /// <summary>
         /// Подключения к БД
         /// </summary>
-        List<OracleConnection> _OracleConnectionList = new List<OracleConnection>();
+        List<SqlConnection> _SqlConnectionList = new List<SqlConnection>();
 
         List<DbCommand> _DbCommandList = new List<DbCommand>();
         List<DbDataReader> _DbDataReaderList = new List<DbDataReader>();
@@ -50,20 +51,20 @@ namespace WebAPI.Helpers
         /// <summary>
         /// инициализация класа
         /// </summary>
-        public OracleDbConnection()
+        public MsDbConnection()
         {
             var builder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json");
 
             AppConfiguration = builder.Build();
-            ProviderName = AppConfiguration["OracleDbConnection:ProviderName"];
-            
-            
-            
-            UserName = AppConfiguration["OracleDbConnection:UserName"];
-            Password = AppConfiguration["OracleDbConnection:Password"];
-            DataSource = AppConfiguration["OracleDbConnection:DataSource"];
+            ProviderName = AppConfiguration["MsDbConnection:ProviderName"];
+            DataBase = AppConfiguration["MsDbConnection:Db"];
+            Port = Convert.ToInt32(AppConfiguration["MsDbConnection:Port"]);
+            Host = AppConfiguration["MsDbConnection:Host"];
+            UserName = AppConfiguration["MsDbConnection:UserName"];
+            Password = AppConfiguration["MsDbConnection:Password"];
+            Schema = AppConfiguration["MsDbConnection:Schema"];
         }
 
         /// <summary>
@@ -72,21 +73,21 @@ namespace WebAPI.Helpers
         /// <returns></returns>
         public string GetConnectionString()
         {
-            return String.Format("Data Source={0};User Id={1};Password={2};", DataSource, UserName, Password);
+            return String.Format("Server={0};Port={1};Database={2};User Id={3};Password={4}", Host, Port, DataBase, UserName, Password);
         }
 
-        public OracleConnection CreateConnection()
+        public SqlConnection CreateConnection()
         {
-            OracleConnection _OracleConnection = new OracleConnection(GetConnectionString());
+            SqlConnection _SqlConnection = new SqlConnection(GetConnectionString());
             try
             {
-                _OracleConnection.Open();
-                _OracleConnectionList.Add(_OracleConnection);
-                return _OracleConnection;
+                _SqlConnection.Open();
+                _SqlConnectionList.Add(_SqlConnection);
+                return _SqlConnection;
             }
-            catch(Exception Ex )
+            catch
             {
-                _OracleConnection.Dispose();
+                _SqlConnection.Dispose();
                 return null;
             }
         }
@@ -101,7 +102,7 @@ namespace WebAPI.Helpers
         {
             if (Command == null)
             {
-                Command = new OracleCommand(SQLString);
+                Command = new SqlCommand(SQLString);
                 return true;
             }
             else
@@ -118,7 +119,7 @@ namespace WebAPI.Helpers
         {
             try
             {
-                OracleCommand Command = new OracleCommand(SQLString, CreateConnection());
+                SqlCommand Command = new SqlCommand(SQLString, CreateConnection());
                 _DbCommandList.Add(Command);
                 return Command;
             }
@@ -251,13 +252,13 @@ namespace WebAPI.Helpers
 
 
             //освобождаем память от Конекшенов
-            _OracleConnectionList.ForEach(delegate (OracleConnection _OracleConnection)
+            _SqlConnectionList.ForEach(delegate (SqlConnection _SqlConnection)
             {
-                if (_OracleConnection != null)
+                if (_SqlConnection != null)
                 {
-                    _OracleConnection.Close();
-                    _OracleConnection.Dispose();
-                    _OracleConnection = null;
+                    _SqlConnection.Close();
+                    _SqlConnection.Dispose();
+                    _SqlConnection = null;
                 }
             });
 
