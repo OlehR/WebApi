@@ -73,19 +73,24 @@ namespace SharedLib
         /// <returns></returns>
         public string GetConnectionString()
         {
-            return String.Format("Server={0};Port={1};Database={2};User Id={3};Password={4}", Host, Port, DataBase, UserName, Password);
+            return String.Format("Server={0};Database={1};Trusted_Connection=True;"/*User Id={2};Password={3}"*/, Host,  DataBase/*, UserName, Password*/);
         }
 
+        SqlConnection _SqlConnection = null;
         public SqlConnection CreateConnection()
         {
-            SqlConnection _SqlConnection = new SqlConnection(GetConnectionString());
+            if (_SqlConnection != null)
+                return _SqlConnection;
+
+            _SqlConnection = new SqlConnection(GetConnectionString());
+
             try
             {
                 _SqlConnection.Open();
                 _SqlConnectionList.Add(_SqlConnection);
                 return _SqlConnection;
             }
-            catch
+            catch(Exception Ex)
             {
                 _SqlConnection.Dispose();
                 return null;
@@ -165,6 +170,40 @@ namespace SharedLib
                 return false;
             }
         }
+
+        /// <summary>
+        /// Выполняет команду
+        /// </summary>
+        /// <param name="Command"> команда БД</param>
+        /// <param name="SQLString"> Sql запрос </param>
+        /// <returns></returns>
+        public DataTable Select(string SQLString = "")
+        {
+            try
+            {
+                DbCommand Command = CreateCommand(SQLString);
+                var res=Command.ExecuteReader();
+                Command.Dispose();
+
+                while (res.Read())
+                {
+                    var myString = res.GetString(0); //The 0 stands for "the 0'th column", so the first column of the result.
+                                                     // Do somthing with this rows string, for example to put them in to a list
+                    Console.WriteLine(myString);
+                }
+
+                //return res;
+                DataTable dt = new DataTable();
+                dt.Load(res);
+                return dt;
+
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
 
         public bool CommandExecute(DbCommand Command)
         {
