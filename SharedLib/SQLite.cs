@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
-using Microsoft.Data.Sqlite;
-
+//using Microsoft.Data.Sqlite;
+/*
 namespace SharedLib
 {
     public class Parameter
@@ -72,3 +72,4 @@ namespace SharedLib
 
     }
 }
+*/

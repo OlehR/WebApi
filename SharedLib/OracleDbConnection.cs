@@ -53,7 +53,7 @@ namespace SharedLib
         public OracleDbConnection()
         {
             var builder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
+             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json");
 
             AppConfiguration = builder.Build();
